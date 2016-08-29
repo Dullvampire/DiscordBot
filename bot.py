@@ -132,6 +132,18 @@ def on_message (message):
             thread.start_new_thread(os.system, ('run.bat',))
             exit()
         
+        if content.startswith(COMMAND_START + 'update'):
+            for server in client.servers:
+                for channel in server.channels:
+                    try:
+                        yield from sendMessage(channel, "Updating really quick, BRB")
+                    except discord.errors.HTTPException:
+                        pass
+            save()
+            os.system('update.bat')
+            thread.start_new_thread(os.system, ('run.bat',))
+            exit()
+        
         if content.startswith(COMMAND_START + 'exit'):
             for server in client.servers:
                 for channel in server.channels:
