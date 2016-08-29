@@ -14,9 +14,16 @@ import sys
 import os
 import datetime
 
+from math import *
+import numpy as np
+
 import _thread as thread
 
+from matplotlib import pyplot as plt
+from matplotlib import pylab as pyl
+
 import configparser
+from flask.helpers import send_file
 
 sleep(0.5)
 
@@ -30,13 +37,11 @@ config = configparser.ConfigParser()
 config.read('settings.ini')
 
 DEFAULT = config['DEFAULT']
+NAMES = config['NAMES']
 
 client = discord.Client()
 
-NAME = 'L-lewdbot'
-
-for server in client.servers:
-    client.change_nickname(server.me, NAME)
+NAME = 'Rivenbot'
 
 COMMAND_LIST = ['*help', '*restart', '*exit', '*update']
 COMMANDS = {'*help' : 'Gives this!',
@@ -46,6 +51,13 @@ COMMANDS = {'*help' : 'Gives this!',
 
 @client.async_event
 def on_ready ():
+    
+    for server in client.servers:
+        if str(server.id) in NAMES:
+            yield from client.change_nickname(server.me, NAMES[str(server.id)])
+        else:
+            yield from client.change_nickname(server.me, NAME)
+    
     if len(client.servers) == 0:
         pass
     elif len(client.servers) == 1:
@@ -88,23 +100,24 @@ def on_member_remove (member):
 
 @client.async_event
 def on_member_update (before, after):
-    if before.game == after.game and before.roles == after.roles and before.status == after.status:
-        server = after.server
-        yield from sendMessage(server.default_channel, "Hey " + before.display_name + " d-did you change s-something? You look different...")
-        asyncio.sleep(10)
-        yield from client.send_typing(server.default_channel)
-        asyncio.sleep(3)
-        changed = ''
-        
-        if before.display_name != after.display_name:
-            changed = 'name, I l-like it a l-lot'
-        
-        elif before.avatar != after.avatar:
-            changed = 'profile pick, looking fine as usual ' + after.display_name
+    if after != after.server.me:
+        if before.game == after.game and before.roles == after.roles and before.status == after.status:
+            server = after.server
+            yield from sendMessage(server.default_channel, "Hey " + before.display_name + " d-did you change s-something? You look different...")
+            asyncio.sleep(10)
+            yield from client.send_typing(server.default_channel)
+            asyncio.sleep(3)
+            changed = ''
             
-        print(before.display_name, after.display_name)
-        
-        yield from sendMessage(server.default_channel, "Y-you did O.o your " + changed + '!')
+            if before.display_name != after.display_name:
+                changed = 'name, I l-like it a l-lot'
+            
+            elif before.avatar != after.avatar:
+                changed = 'profile pick, looking fine as usual ' + after.display_name
+                
+            print(before.display_name, after.display_name)
+            
+            yield from sendMessage(server.default_channel, "Y-you did O.o your " + changed + '!')
     
 @client.async_event
 def on_message (message):
@@ -159,6 +172,63 @@ def on_message (message):
                         pass
             
             saveAndExit()
+        
+        if content.startswith(COMMAND_START + 'plot'):
+            args = content.split(' ')
+        
+            
+            try:
+                
+                expr = eval('lambda x: ' + args[1])
+                xMin = float(args[2])
+                xMax = float(args[3])
+                yMin = float(args[4])
+                yMax = float(args[5])
+                
+                if len(args) == 7:
+                    step = float(args[6])
+                
+                else:
+                    step = 0.01
+                
+                step = abs(step)
+                
+                print('Graphing from %f to %f' % (xMin, xMax))
+                
+                plt.clf()
+                
+                fig = plt.figure(1, figsize = (xMax - xMin, yMax - yMin))
+                
+                x = xMin
+                
+                ys = []
+                
+                while x < xMax:
+                    ys.append(expr(x))
+                    x += step
+                
+                def genRange (start, stop, step):
+                    r = []
+                    while start < stop:
+                        r.append(start)
+                        start += step
+                    return r
+                
+                plt.plot(genRange(xMin, xMax, step), ys)
+                
+                fig.savefig('figure.png')
+                
+                yield from client.send_file(message.channel, str(os.path.curdir) + '/figure.png', content = str(xMin) + ' <= x < ' + str(xMax) + '\n' + str(yMin) + '<= y < ' + str(yMax))
+            
+            except:
+                yield from client.send_message(message.channel, 'Sorry, I d-don\'t understand th-that...')
+                
+        if content.startswith(COMMAND_START + 'name'):
+            NAMES[str(message.server.id)] = content.split(' ')[1]
+            
+            yield from client.change_nickname(message.server.me, content.split(' ')[1])
+            
+            save()
 
 def sendMessage (channel, message):
     return client.send_message(channel, message)
