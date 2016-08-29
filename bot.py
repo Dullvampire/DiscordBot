@@ -33,10 +33,16 @@ DEFAULT = config['DEFAULT']
 
 client = discord.Client()
 
-COMMAND_LIST = ['*help', '*restart', '*exit']
+NAME = 'L-lewdbot'
+
+for server in client.servers:
+    client.change_nickname(server.me, NAME)
+
+COMMAND_LIST = ['*help', '*restart', '*exit', '*update']
 COMMANDS = {'*help' : 'Gives this!',
-            '*restart' : 'Restarts L-lewdbot',
-            '*exit' : 'Quits L-lewdbot'}
+            '*restart' : 'Restarts ' + NAME,
+            '*exit' : 'Quits ' + NAME,
+            '*update' : 'Pulls update from github'}
 
 @client.async_event
 def on_ready ():
@@ -68,7 +74,7 @@ def on_server_join (server):
     print('Joined ' + server.name)
     for channel in server.channels:
         try:
-            yield from sendMessage(channel, "H-hello there, I am L-lewd bot :heart:")
+            yield from sendMessage(channel, "H-hello there, I am " + NAME + " :heart:")
         except discord.errors.HTTPException:
             pass
 
