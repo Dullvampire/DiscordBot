@@ -136,6 +136,19 @@ def on_message (message):
                 s += i + " - " + COMMANDS[i] + '\n'
             
             yield from sendMessage(message.channel, s)
+		
+		if content.startswith(COMMAND_START + 'set') and message.author == message.server.owner:
+			try:
+				args = content.split(' ')
+				
+				if args[1] not in config or args[2] not in config[args[1]]:
+					raise IndexError
+				
+				config[args[1]][args[2]] = args[3]
+				save()
+			
+			except:
+				yield from sendMessage(message.channel, "Sorry, %s doesnt appear to be a setting" % (args[1] + ' - ' + args[2]))
         
         if content.startswith(COMMAND_START + 'restart'):
             for server in client.servers:
@@ -221,7 +234,7 @@ def on_message (message):
                 yield from client.send_file(message.channel, str(os.path.curdir) + '/figure.png', content = str(xMin) + ' <= x < ' + str(xMax) + '\n' + str(yMin) + '<= y < ' + str(yMax))
             
             except:
-                yield from client.send_message(message.channel, 'Sorry, I d-don\'t understand th-that...')
+                yield from sendMessage(message.channel, 'Sorry, I d-don\'t understand th-that...')
                 
         if content.startswith(COMMAND_START + 'name'):
             NAMES[str(message.server.id)] = content.split(' ')[1]
@@ -231,7 +244,18 @@ def on_message (message):
             save()
 
 def sendMessage (channel, message):
-    return client.send_message(channel, message)
+    return sendMessage(channel, stutter(message))
+
+def stutter (text):
+	s = ''
+	
+	for i in text.split(' '):
+		if random.random() <= 0.1:
+			s += i[0] + '-'
+		
+		s += i + ' '
+	
+	return s
 
 def saveAndExit ():
     save()
