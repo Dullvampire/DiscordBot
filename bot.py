@@ -68,14 +68,14 @@ def on_ready ():
     
     if DEFAULT['restart'] == 'false':
         for server in client.servers:
-            yield from sendMessage(server.default_channel, "I-i'm here :heart:")
+            yield from sendMessage(server.default_channel, "I'm here :heart:")
     
     else:
         ownersSentTo = []
         
         for server in client.servers:
             if server.owner not in ownersSentTo:
-                yield from sendMessage(server.owner, "I was s-sucessfully restarted! I go to live another day")
+                yield from sendMessage(server.owner, "I was sucessfully restarted! I go to live another day")
                 ownersSentTo.append(server.owner)
                 
         DEFAULT['restart'] = 'false'
@@ -87,38 +87,38 @@ def on_server_join (server):
     print('Joined ' + server.name)
     for channel in server.channels:
         try:
-            yield from sendMessage(channel, "H-hello there, I am " + NAME + " :heart:")
+            yield from sendMessage(channel, "Hello there, I am " + NAME + " :heart:")
         except discord.errors.HTTPException:
             pass
 
 @client.async_event
 def on_member_join (member):
-    yield from sendMessage(member.server.default_channel, "H-hi " + member.display_name + " :heart:")
+    yield from sendMessage(member.server.default_channel, "Hi " + member.display_name + " :heart:")
 
 @client.async_event
 def on_member_remove (member):
-    yield from sendMessage(member.server.default_channel, "O-oh... W-was it m-my fault " + member.display_name + "? :broken_heart:")
+    yield from sendMessage(member.server.default_channel, "Oh... Was it my fault " + member.display_name + "? :broken_heart:")
 
 @client.async_event
 def on_member_update (before, after):
     if after != after.server.me:
         if before.game == after.game and before.roles == after.roles and before.status == after.status:
             server = after.server
-            yield from sendMessage(server.default_channel, "Hey " + before.display_name + " d-did you change s-something? You look different...")
+            yield from sendMessage(server.default_channel, "Hey " + before.display_name + " did you change something? You look different...")
             asyncio.sleep(10)
             yield from client.send_typing(server.default_channel)
             asyncio.sleep(3)
             changed = ''
             
             if before.display_name != after.display_name:
-                changed = 'name, I l-like it a l-lot'
+                changed = 'name, I like it a lot'
             
             elif before.avatar != after.avatar:
                 changed = 'profile pick, looking fine as usual ' + after.display_name
                 
             print(before.display_name, after.display_name)
             
-            yield from sendMessage(server.default_channel, "Y-you did O.o your " + changed + '!')
+            yield from sendMessage(server.default_channel, "You did O.o your " + changed + '!')
     
 @client.async_event
 def on_message (message):
@@ -181,7 +181,7 @@ def on_message (message):
             for server in client.servers:
                 for channel in server.channels:
                     try:
-                        yield from sendMessage(channel, "Sorry I GTG, c-cya later...")
+                        yield from sendMessage(channel, "Sorry I GTG, cya later...")
                     except discord.errors.HTTPException:
                         pass
             
@@ -235,7 +235,7 @@ def on_message (message):
                 yield from client.send_file(message.channel, str(os.path.curdir) + '/figure.png', content = str(xMin) + ' <= x < ' + str(xMax) + '\n' + str(yMin) + '<= y < ' + str(yMax))
             
             except:
-                yield from sendMessage(message.channel, 'Sorry, I d-don\'t understand th-that...')
+                yield from sendMessage(message.channel, 'Sorry, I don\'t understand that...')
                 
         if content.startswith(COMMAND_START + 'name'):
             NAMES[str(message.server.id)] = content.split(' ')[1]
@@ -251,10 +251,12 @@ def stutter (text):
     s = ''
     
     for i in text.split(' '):
-        if random.random() <= 0.1 and len(i) > 0:
-            s += i[0] + '-'
+        if random.random() <= float(DEFAULT['stutterRate']) and len(i) > 0 and len(i) < 10:
+            if i[0] in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz':
+                s += i[0] + '-' + i.lower() + ' '
         
-        s += i + ' '
+        else:
+            s += i + ' '
     
     return s
 
