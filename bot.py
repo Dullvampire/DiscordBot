@@ -14,7 +14,6 @@ import sys
 import os
 import datetime
 
-from math import *
 import numpy as np
 
 import _thread as thread
@@ -138,6 +137,8 @@ def on_member_update (before, after):
 def on_message (message):
     content = message.content
     
+    sID = str(message.server.id)
+    
     try:
         do = message.server.me != message.author
     except:
@@ -161,10 +162,10 @@ def on_message (message):
                 else:
                     raise ValueError
                 
-                yield from sendMessage(message.channel, "Setting has been changed")
+                yield from sendMessage(message.channel, getLine(sID, 'setSettingChanged'))
             
             except:
-                yield from sendMessage(message.channel, "Sorry, I failed you senpai ;-; :broken_heart:")
+                yield from sendMessage(message.channel, getLine(sID, 'setSettingFailed'))
         
         if content.startswith(COMMAND_START + 'reset') and message.author.id == message.server.owner.id:
             try:
@@ -247,6 +248,8 @@ def on_message (message):
                 yield from sendMessage(message.channel, "Sorry you need to be a system admin")
         
         if content.startswith(COMMAND_START + 'plot'):
+            from math import *
+            
             args = content.split(' ')
         
             
@@ -466,6 +469,9 @@ def tick (client):
             if RUNTIME_VARIABLES['players'][0].is_done():
                 RUNTIME_VARIABLES['players'].pop(0)
                 RUNTIME_VARIABLES['players'][0].start()
+
+def getLine (serverID, code):
+    return config[str(serverID) + 'VOICE'][code]
 
 client.run('MjEyNDUxNTk4MzUyMzg0MDAy.CqU32g.2GURlLhFfdOtDWC9y_zGP1TAzqk')
 
