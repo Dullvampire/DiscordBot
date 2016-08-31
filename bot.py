@@ -116,9 +116,8 @@ def on_ready ():
             if server.owner not in ownersSentTo:
                 yield from sendMessage(server.owner, getLine(server.id, 'restarted'))
                 ownersSentTo.append(server.owner)
-        
-        for serverID in config:
-            config[str(server.id) + 'DEFAULT']['restart'] = 'false'
+            
+                config[str(server.id) + 'DEFAULT']['restart'] = 'false'
         
         save()
 
@@ -539,4 +538,4 @@ def setGlobalConfig (value, *arg):
 def getLine (serverID, code):
     return config[str(serverID) + 'VOICE'][code]
 
-client.run('MjEyNDUxNTk4MzUyMzg0MDAy.CqU32g.2GURlLhFfdOtDWC9y_zGP1TAzqk')
+client.run('MjIwNjE5ODUxMjQzMTkyMzIw.Cqi7xA.HjOHCP0gp0GQCqPZVJevxGIV2JM')
