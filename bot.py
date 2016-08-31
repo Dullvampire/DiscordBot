@@ -9,7 +9,7 @@ https://discordapp.com/oauth2/authorize?client_id=212451598352384002&scope=bot&p
 
 import discord
 import asyncio
-from time import time, sleep
+import time
 import sys
 import os
 import datetime
@@ -26,7 +26,7 @@ import configparser
 from flask.helpers import send_file
 from math import *
 
-sleep(0.5)
+time.sleep(0.5)
 
 def _checkStutterRate (s):
     try:
@@ -74,7 +74,8 @@ SETTINGS = {'DEFAULT' : {'restart' : lambda x: False,
 
 RUNTIME_VARIABLES = {'voice' : {},
                      'players' : {},
-                     'volume' : {}}
+                     'volume' : {},
+                     'start' : time.time()}
 
 @client.async_event
 def on_ready ():
@@ -348,8 +349,24 @@ def on_message (message):
             else:
                 yield from sendMessage(message.channel, getLine(sID, 'leaveFailure'))
         
+        if content.startswith(COMMAND_START + 'status'):
+            yield from sendMessage(message.channel, 'I\'ve been up for ' + str(time.time() - RUNTIME_VARIABLES['start']) + ' seconds')
+        
         if content.startswith(COMMAND_START + 'play'):
-            url = content.split(' ')[1]
+            url = content.split(' ')
+            nURL = []
+            
+            for i in url:
+                if i != '':
+                    nURL.append(i)
+            
+            url = nURL[1]
+            
+            try:
+                RUNTIME_VARIABLES['voice'][message.server.id] = yield from client.join_voice_channel(message.author.voice_channel)
+                yield from sendMessage(message.channel, getLine(sID, 'joinSuccess'))
+            except:
+                yield from sendMessage(message.channel, getLine(sID, 'joinFailure'))
             
             if message.server.id in RUNTIME_VARIABLES['players'].keys():
                 if type(RUNTIME_VARIABLES['players'][message.server.id]) == list:
@@ -386,7 +403,7 @@ def on_message (message):
         if content.startswith(COMMAND_START + 'stop'):
             if message.server.id in RUNTIME_VARIABLES['players'] and RUNTIME_VARIABLES['players'][message.server.id] not in [[], None]:
                 RUNTIME_VARIABLES['players'][message.server.id].pop(0).stop()
-                yield from sendMessage(message.content, "Stopping")
+                yield from sendMessage(message.channel, "Stopping")
                 RUNTIME_VARIABLES['players'][message.server.id] = []
         
         if content.startswith(COMMAND_START + 'pause'):
