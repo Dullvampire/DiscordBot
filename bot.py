@@ -24,6 +24,7 @@ import random
 
 import configparser
 from flask.helpers import send_file
+from math import *
 
 sleep(0.5)
 
@@ -137,7 +138,10 @@ def on_member_update (before, after):
 def on_message (message):
     content = message.content
     
-    sID = str(message.server.id)
+    try:
+        sID = str(message.server.id)
+    except:
+        pass
     
     try:
         do = message.server.me != message.author
@@ -248,7 +252,6 @@ def on_message (message):
                 yield from sendMessage(message.channel, "Sorry you need to be a system admin")
         
         if content.startswith(COMMAND_START + 'plot'):
-            from math import *
             
             args = content.split(' ')
         
@@ -325,43 +328,63 @@ def on_message (message):
         if content.startswith(COMMAND_START + 'play'):
             url = content.split(' ')[1]
             
-            if message.server.id in RUNTIME_VARIABLES['players'].keys() and RUNTIME_VARIABLES['players'][message.server.id] == []:
-                yield from RUNTIME_VARIABLES['players'][message.server.id].append(RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url))
+            try:
+                print(RUNTIME_VARIABLES['players'][message.server.id])
+            except:
+                pass
+            
+            if message.server.id in RUNTIME_VARIABLES['players'].keys():
+                if type(RUNTIME_VARIABLES['players'][message.server.id]) == list:
+                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
+                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
+                    player.volume = float(config[str(message.server.id) + 'DEFAULT']['volume'])
             else:
                 RUNTIME_VARIABLES['players'][message.server.id] = []
-                player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
-                RUNTIME_VARIABLES['players'][message.server.id].append(player)
+                if message.server.id in RUNTIME_VARIABLES['voice'].keys():
+                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
+                else:
+                    try:
+                        RUNTIME_VARIABLES['voice'][message.server.id] = yield from client.join_voice_channel(message.author.voice_channel)
+                        yield from sendMessage(message.channel, "I have come to you senpai :heart:")
+                    except:
+                        yield from sendMessage(message.channel, "Sorry, I can't do that")
+                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
+                    
+                    player.volume = float(config[str(message.server.id) + 'DEFAULT']['volume'])
+                    
+                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
             
-            RUNTIME_VARIABLES['players'][message.server.id][0].start()
-            
-            yield from sendMessage(message.channel, 'Playing: ' + RUNTIME_VARIABLES['players'][message.server.id].title)
+            if len(RUNTIME_VARIABLES['players'][message.server.id]) == 1:
+                RUNTIME_VARIABLES['players'][message.server.id][0].start()
+                yield from sendMessage(message.channel, 'Playing: ' + RUNTIME_VARIABLES['players'][message.server.id][0].title)
         
         if content.startswith(COMMAND_START + 'stop'):
             if message.server.id in RUNTIME_VARIABLES['players'] and RUNTIME_VARIABLES['players'][message.server.id] not in [[], None]:
                 RUNTIME_VARIABLES['players'][message.server.id].pop(0).stop()
-                yield from sendMessage(message.content, "Stopping: " + RUNTIME_VARIABLES['players'][message.server.id].title)
+                yield from sendMessage(message.content, "Stopping")
+                RUNTIME_VARIABLES['players'][message.server.id] = []
         
         if content.startswith(COMMAND_START + 'pause'):
             if message.server.id in RUNTIME_VARIABLES['players'] and RUNTIME_VARIABLES['players'][message.server.id] not in [[], None]:
                 RUNTIME_VARIABLES['players'][message.server.id][0].pause()
-                yield from sendMessage(message.channel, "Pausing: " + RUNTIME_VARIABLES['players'][message.server.id].title)
+                yield from sendMessage(message.channel, "Pausing: " + RUNTIME_VARIABLES['players'][message.server.id][0].title)
         
         if content.startswith(COMMAND_START + 'resume'):
             if message.server.id in RUNTIME_VARIABLES['players'] and RUNTIME_VARIABLES['players'][message.server.id] not in [[], None]:
                 RUNTIME_VARIABLES['players'][message.server.id][0].resume()
-                yield from sendMessage(message.channel, "Pausing: " + RUNTIME_VARIABLES['players'][message.server.id].title)
+                yield from sendMessage(message.channel, "Pausing: " + RUNTIME_VARIABLES['players'][message.server.id][0].title)
         
         if content.startswith(COMMAND_START + 'queue'):
-            try:
-                if len(RUNTIME_VARIABLES['players'][message.server.id]) == 0:
-                    yield from sendMessage(message.channel, "Sorry, no songs are currently playing")
-                
-                else:    
-                    for i, j in enumerate(RUNTIME_VARIABLES['players'][message.server.id]):
-                        yield from sendMessage(message.channel, "%i - %s" % (i, j.title))
-                
-            except:
+          #  try:
+            if len(RUNTIME_VARIABLES['players'][message.server.id]) == 0:
                 yield from sendMessage(message.channel, "Sorry, no songs are currently playing")
+            
+            else:    
+                for i, j in enumerate(RUNTIME_VARIABLES['players'][message.server.id]):
+                    yield from sendMessage(message.channel, "%i - %s" % (i, j.title))
+#                
+#            except:
+ #               yield from sendMessage(message.channel, "Sorry, no songs are currently playing")
         
         if content.startswith(COMMAND_START + 'skip'):
             if len(RUNTIME_VARIABLES['players'][message.server.id]) == 0:
@@ -373,6 +396,14 @@ def on_message (message):
                 RUNTIME_VARIABLES['players'][message.server.id].pop(0)
                 
                 RUNTIME_VARIABLES['players'][message.server.id][0].start()
+        
+        if content.startswith(COMMAND_START + 'volume'):
+            
+            try:
+                print(RUNTIME_VARIABLES['players'][message.server.id])
+            except:
+                pass
+            RUNTIME_VARIABLES['players'][message.server.id][0].volume = float(content.split(' ')[1])
 
 def sendMessage (channel, message):
     return client.send_message(channel, stutter(message, channel.server))
@@ -463,18 +494,7 @@ def setGlobalConfig (value, *arg):
     except:
         return False
 
-def tick (client):
-    for i in client.servers:
-        if i.id in RUNTIME_VARIABLES['players'].keys():
-            if RUNTIME_VARIABLES['players'][0].is_done():
-                RUNTIME_VARIABLES['players'].pop(0)
-                RUNTIME_VARIABLES['players'][0].start()
-
 def getLine (serverID, code):
     return config[str(serverID) + 'VOICE'][code]
 
 client.run('MjEyNDUxNTk4MzUyMzg0MDAy.CqU32g.2GURlLhFfdOtDWC9y_zGP1TAzqk')
-
-while True:
-    tick (client)
-    sleep(1)
