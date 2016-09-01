@@ -2,7 +2,7 @@
 Discord Bot
 
 To invite to server
-https://discordapp.com/oauth2/authorize?client_id=212451598352384002&scope=bot&permissions=12659727
+https://discordapp.com/oauth2/authorize?client_id=220619851243192320&scope=bot&permissions=12659727
 '''
 
 #UTF-8 Encoding
@@ -362,42 +362,41 @@ def on_message (message):
             url = nURL[1]
             
             try:
-                RUNTIME_VARIABLES['voice'][message.server.id] = yield from client.join_voice_channel(message.author.voice_channel)
-                yield from sendMessage(message.channel, getLine(sID, 'joinSuccess'))
-            except:
-                yield from sendMessage(message.channel, getLine(sID, 'joinFailure'))
-            
-            if message.server.id in RUNTIME_VARIABLES['players'].keys():
-                if type(RUNTIME_VARIABLES['players'][message.server.id]) == list:
-                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
-                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
-                    player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
-                    player.start()
+                if message.server.id in RUNTIME_VARIABLES['players'].keys():
+                    if type(RUNTIME_VARIABLES['players'][message.server.id]) == list:
+                        player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
+                        RUNTIME_VARIABLES['players'][message.server.id].append(player)
+                        player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
+                        
+                        if len(RUNTIME_VARIABLES['players'][message.server.id]) == 1:
+                            player.start()
+                    else:
+                        RUNTIME_VARIABLES['players'][message.server.id] = []
+                        player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
+                        RUNTIME_VARIABLES['players'][message.server.id].append(player)
+                        player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
+                        player.start()
                 else:
                     RUNTIME_VARIABLES['players'][message.server.id] = []
-                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
-                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
-                    player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
-                    player.start()
-            else:
-                RUNTIME_VARIABLES['players'][message.server.id] = []
-                if message.server.id in RUNTIME_VARIABLES['voice'].keys():
-                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
-                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
-                    player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
-                    player.start()
-                else:
-                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
-                
-                    player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
+                    if message.server.id in RUNTIME_VARIABLES['voice'].keys():
+                        player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
+                        RUNTIME_VARIABLES['players'][message.server.id].append(player)
+                        player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
+                        player.start()
+                    else:
+                        player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
                     
-                    player.start()
+                        player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
+                        
+                        player.start()
+                    
+                        RUNTIME_VARIABLES['players'][message.server.id].append(player)
                 
-                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
-            
-            if len(RUNTIME_VARIABLES['players'][message.server.id]) > 0 and not RUNTIME_VARIABLES['players'][message.server.id][0].is_playing():
-                RUNTIME_VARIABLES['players'][message.server.id][0].start()
-                yield from sendMessage(message.channel, 'Playing: ' + RUNTIME_VARIABLES['players'][message.server.id][0].title)
+                if len(RUNTIME_VARIABLES['players'][message.server.id]) > 0 and not RUNTIME_VARIABLES['players'][message.server.id][0].is_playing():
+                    RUNTIME_VARIABLES['players'][message.server.id][0].start()
+                    yield from sendMessage(message.channel, 'Playing: ' + RUNTIME_VARIABLES['players'][message.server.id][0].title)
+            except:
+                yield from sendMessage(message.channel, getLine(sID, 'leaveFailure'))
         
         if content.startswith(COMMAND_START + 'stop'):
             if message.server.id in RUNTIME_VARIABLES['players'] and RUNTIME_VARIABLES['players'][message.server.id] not in [[], None]:
