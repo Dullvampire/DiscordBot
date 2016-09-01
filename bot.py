@@ -74,12 +74,8 @@ SETTINGS = {'DEFAULT' : {'restart' : lambda x: False,
 
 RUNTIME_VARIABLES = {'voice' : {},
                      'players' : {},
-<<<<<<< HEAD
-                     'volume' : {}}
-=======
                      'volume' : {},
                      'start' : time.time()}
->>>>>>> master
 
 @client.async_event
 def on_ready ():
@@ -351,50 +347,13 @@ def on_message (message):
             
             else:
                 yield from sendMessage(message.channel, getLine(sID, 'leaveFailure'))
-<<<<<<< HEAD
-=======
-        
         if content.startswith(COMMAND_START + 'status'):
             yield from sendMessage(message.channel, 'I\'ve been up for ' + str(time.time() - RUNTIME_VARIABLES['start']) + ' seconds')
->>>>>>> master
+
         
         if content.startswith(COMMAND_START + 'play'):
             url = content.split(' ')
             nURL = []
-            
-<<<<<<< HEAD
-            if message.server.id in RUNTIME_VARIABLES['players'].keys():
-                if type(RUNTIME_VARIABLES['players'][message.server.id]) == list:
-                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
-                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
-                    player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
-                    player.start()
-                else:
-                    RUNTIME_VARIABLES['players'][message.server.id] = []
-                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
-                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
-                    player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
-                    player.start()
-            else:
-                RUNTIME_VARIABLES['players'][message.server.id] = []
-                if message.server.id in RUNTIME_VARIABLES['voice'].keys():
-                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
-                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
-                    player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
-                    player.start()
-                else:
-                    player = yield from RUNTIME_VARIABLES['voice'][message.server.id].create_ytdl_player(url)
-                
-                    player.volume = RUNTIME_VARIABLES['volume'][message.server.id]
-                    
-                    player.start()
-                
-                    RUNTIME_VARIABLES['players'][message.server.id].append(player)
-            
-            if len(RUNTIME_VARIABLES['players'][message.server.id]) > 0 and not RUNTIME_VARIABLES['players'][message.server.id][0].is_playing():
-                RUNTIME_VARIABLES['players'][message.server.id][0].start()
-                yield from sendMessage(message.channel, 'Playing: ' + RUNTIME_VARIABLES['players'][message.server.id][0].title)
-=======
             for i in url:
                 if i != '':
                     nURL.append(i)
@@ -437,16 +396,11 @@ def on_message (message):
                     yield from sendMessage(message.channel, 'Playing: ' + RUNTIME_VARIABLES['players'][message.server.id][0].title)
             except:
                 yield from sendMessage(message.channel, getLine(sID, 'leaveFailure'))
->>>>>>> master
         
         if content.startswith(COMMAND_START + 'stop'):
             if message.server.id in RUNTIME_VARIABLES['players'] and RUNTIME_VARIABLES['players'][message.server.id] not in [[], None]:
                 RUNTIME_VARIABLES['players'][message.server.id].pop(0).stop()
-<<<<<<< HEAD
                 yield from sendMessage(message.content, "Stopping")
-=======
-                yield from sendMessage(message.channel, "Stopping")
->>>>>>> master
                 RUNTIME_VARIABLES['players'][message.server.id] = []
         
         if content.startswith(COMMAND_START + 'pause'):
@@ -582,8 +536,4 @@ def setGlobalConfig (value, *arg):
 def getLine (serverID, code):
     return config[str(serverID) + 'VOICE'][code]
 
-<<<<<<< HEAD
-client.run('MjEyNDUxNTk4MzUyMzg0MDAy.CqU32g.2GURlLhFfdOtDWC9y_zGP1TAzqk')
-=======
 client.run('MjIwNjE5ODUxMjQzMTkyMzIw.Cqi7xA.HjOHCP0gp0GQCqPZVJevxGIV2JM')
->>>>>>> master
